@@ -1,8 +1,8 @@
 import { faPlus, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Dialog } from "@headlessui/react";
 import { addDoc, collection, doc, getFirestore } from "firebase/firestore";
 import { Fragment, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 import { Button, IconButton } from "../components/Button";
 import FloatingLabelInput from "../components/FloatingLabelInput";
 import Select from "../components/Select";
@@ -26,12 +26,9 @@ function CreateGroup({ user }: AuthProps) {
   const [taskName, setTaskName] = useState("");
   const [dueDate, setDueDate] = useState(DueDate.NoDueDate);
   const newTaskRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   async function createGroup() {
-    if (!user.email) {
-      alert("User not logged in, try again.");
-    }
-
     const newGroup: Group = {
       name: groupName,
       resetDay: resetDay,
@@ -40,7 +37,8 @@ function CreateGroup({ user }: AuthProps) {
       admin: userEmail,
     };
 
-    addDoc(collection(db, "groups"), newGroup);
+    const newDoc = await addDoc(collection(db, "groups"), newGroup);
+    navigate(`/group/${newDoc.id}`);
   }
 
   function addMember() {
