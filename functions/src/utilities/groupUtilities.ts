@@ -1,6 +1,6 @@
 import { Group } from "../types/types";
 
-export function rotateGroupTasks(group: Group) {
+export function rotateGroupTasks(group: Group): Group {
   const returnGroup = { ...group };
   const currentOffset = group.currentOffset ?? 0;
   const extraTasks = group.memberEmails.length - group.tasks.length;

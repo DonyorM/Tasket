@@ -1,14 +1,12 @@
-import moment, { unitOfTime } from "moment";
-
 enum DueDate {
-  NoDueDate,
+  NoDueDate = -1,
+  Sunday,
   Monday,
   Tuesday,
   Wednesday,
   Thursday,
   Friday,
   Saturday,
-  Sunday,
 }
 
 export const dueDateToString = (date: DueDate) => {
@@ -32,25 +30,38 @@ export const dueDateToString = (date: DueDate) => {
   }
 };
 
-export const convertDayToDate = (
-  dueDate: DueDate,
-  startDate?: moment.Moment
-) => {
-  const startingDate = startDate ?? moment().isoWeekday(1);
-  return startingDate
-    .clone()
-    .weekday(dueDate === DueDate.NoDueDate ? DueDate.Sunday : dueDate);
+export const convertDayToDate = (dueDate: DueDate, startDate?: Date) => {
+  const startingDate = startDate || getPreviousMonday();
+  return moveToNextDay(
+    startingDate,
+    DueDate.NoDueDate ? DueDate.Sunday : dueDate
+  );
 };
 
 export const allDates = [
   DueDate.NoDueDate,
+  DueDate.Sunday,
   DueDate.Monday,
   DueDate.Tuesday,
   DueDate.Wednesday,
   DueDate.Thursday,
   DueDate.Friday,
   DueDate.Saturday,
-  DueDate.Sunday,
 ];
+
+export const getPreviousMonday = (date: Date | null = null) => {
+  const prevMonday = (date && new Date(date.valueOf())) || new Date();
+  prevMonday.setDate(prevMonday.getDate() - ((prevMonday.getDay() + 6) % 7));
+  return prevMonday;
+};
+
+// Pulled from here: https://stackoverflow.com/a/11789820/2719960
+export const moveToNextDay = (startDate: Date, targetDay: DueDate) => {
+  const date = new Date(startDate.getTime());
+  let currentDay = startDate.getDay();
+  let distance = (targetDay + 7 - currentDay) % 7;
+  date.setDate(date.getDate() + distance);
+  return date;
+};
 
 export default DueDate;

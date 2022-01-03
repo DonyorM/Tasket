@@ -2,12 +2,16 @@ import { doc, getFirestore } from "@firebase/firestore";
 import { Fragment } from "react";
 import { useDocument } from "react-firebase-hooks/firestore";
 import { useParams } from "react-router";
+import { Button } from "../components/Button";
 import Loading from "../components/Loading";
 import withAuth, { AuthProps } from "../components/withAuth";
 import { convertDayToDate } from "../utilities/DueDate";
 import { Group, Task } from "../utilities/types";
 import NotFound from "./NotFound";
+import { getFunctions, httpsCallable } from "firebase/functions";
 const db = getFirestore();
+const functions = getFunctions();
+const rotateTasks = httpsCallable(functions, "rotateTasks");
 
 function ViewGroup({ user }: AuthProps) {
   const { groupId } = useParams();
@@ -22,20 +26,27 @@ function ViewGroup({ user }: AuthProps) {
     return <Loading />;
   }
 
-  const currentUserTask = groupData.tasks.filter(
-    (x) => x.assignedId === user.email
-  )[0];
-  const otherTasks = groupData.tasks.filter((x) => x.assignedId !== user.email);
+  const isAdmin = groupData.admin === user.email;
 
   function buildUserRow(userId: string) {
-    const userTask = groupData.tasks.filter((x) => x.assignedId === userId)[0];
-    if (userTask) {
+    const userTasks = groupData.tasks.filter((x) => x.assignedId === userId);
+    if (userTasks) {
       return (
         <Fragment key={userId}>
-          <span>{userTask.assignedName || userTask.assignedId}</span>
-          <span>{userTask.name}</span>
-          <span>{userTask.completed ? "Complete" : "Incomplete"}</span>
-          <span>{convertDayToDate(userTask.dueDate).format("MM/DD")}</span>
+          {userTasks.map((task, index) => {
+            <Fragment key={index}>
+              <span>{task.assignedName || task.assignedId}</span>
+              <span>{task.name}</span>
+              <span>{task.completed ? "Complete" : "Incomplete"}</span>
+              <span>
+                {convertDayToDate(task.dueDate).toLocaleDateString(undefined, {
+                  month: "2-digit",
+                  day: "2-digit",
+                })}
+                ;
+              </span>
+            </Fragment>;
+          })}
         </Fragment>
       );
     } else {
@@ -48,6 +59,10 @@ function ViewGroup({ user }: AuthProps) {
         </Fragment>
       );
     }
+  }
+
+  function reassignTasks() {
+    rotateTasks({ groupId: groupDoc?.id });
   }
 
   return (
@@ -63,6 +78,9 @@ function ViewGroup({ user }: AuthProps) {
         {groupData.memberEmails
           .filter((x) => x !== user.email)
           .map((email) => buildUserRow(email))}
+      </div>
+      <div>
+        {isAdmin ? <Button onClick={reassignTasks}>Reassign Tasks</Button> : ""}
       </div>
     </>
   );

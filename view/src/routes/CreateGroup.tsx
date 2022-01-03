@@ -8,7 +8,10 @@ import FloatingLabelInput from "../components/FloatingLabelInput";
 import Select from "../components/Select";
 import TasketDialog from "../components/TasketDialog";
 import withAuth, { AuthProps } from "../components/withAuth";
-import DueDate, { dueDateToString } from "../utilities/DueDate";
+import DueDate, {
+  dueDateToString,
+  getPreviousMonday,
+} from "../utilities/DueDate";
 import { Group, Member, Task } from "../utilities/types";
 
 const db = getFirestore();
@@ -36,6 +39,7 @@ function CreateGroup({ user }: AuthProps) {
       members: members,
       admin: userEmail,
       memberEmails: members.map((x) => x.id),
+      currentStartDate: getPreviousMonday().toLocaleDateString("en-CA"),
     };
 
     const newDoc = await addDoc(collection(db, "groups"), newGroup);
