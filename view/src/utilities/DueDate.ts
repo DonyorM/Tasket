@@ -34,7 +34,7 @@ export const convertDayToDate = (dueDate: DueDate, startDate?: Date) => {
   const startingDate = startDate || getPreviousMonday();
   return moveToNextDay(
     startingDate,
-    DueDate.NoDueDate ? DueDate.Sunday : dueDate
+    DueDate.NoDueDate === dueDate ? DueDate.Sunday : dueDate
   );
 };
 

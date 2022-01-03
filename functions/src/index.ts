@@ -1,7 +1,6 @@
-import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import "./firebase";
 admin.initializeApp();
+import * as functions from "firebase-functions";
 import * as groupManagement from "./data_mangement/groups";
 
 // // Start writing Firebase Functions
@@ -16,6 +15,19 @@ export const createGroup = functions.firestore
   .document("groups/{docId}")
   .onCreate(groupManagement.groupCreate);
 
-export const rotateTasks = functions.https.onCall(({ groupId }) => {
-  groupManagement.assignTasks(groupId);
+export const rotateTasks = functions.https.onCall(async ({ groupId }) => {
+  functions.logger.info("Rotating tasks for group", groupId);
+  return await groupManagement.assignTasks(groupId);
 });
+
+export const addMemberToGroup = functions.https.onCall(
+  async ({ groupId, memberId }) => {
+    functions.logger.info(
+      "Adding member with email",
+      memberId,
+      "to group",
+      groupId
+    );
+    return await groupManagement.addMemberToGroup(groupId, memberId);
+  }
+);

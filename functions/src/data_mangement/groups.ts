@@ -1,12 +1,11 @@
 import { Group, Member } from "../types/types";
 import { getUserName } from "../utilities/users";
 import { rotateGroupTasks } from "../utilities/groupUtilities";
-import { initializeApp } from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
 type DocumentReference = FirebaseFirestore.DocumentReference;
 
-initializeApp();
 const NO_NAME = "Person Not In System";
+const db = getFirestore();
 
 /**
  * Updates the specified group with the passed values
@@ -18,6 +17,21 @@ async function updateGroup(
   ref: DocumentReference
 ): Promise<void> {
   await ref.set(group);
+}
+
+export async function addMemberToGroup(
+  groupId: string,
+  memberEmail: string
+): Promise<void> {
+  const name = await getUserName(memberEmail);
+  const groupRef = db.collection("groups").doc(groupId);
+  const groupDoc = await groupRef.get();
+  if (groupDoc.exists) {
+    const group = groupDoc.data() as Group;
+    group.memberEmails = [...group.memberEmails, memberEmail];
+    group.members = [...group.members, { id: memberEmail, name: name }];
+    groupRef.set(group);
+  }
 }
 
 /**
@@ -54,7 +68,6 @@ export async function groupCreate(
 }
 
 export async function assignTasks(groupId: string): Promise<void> {
-  const db = getFirestore();
   const groupRef = db.collection("groups").doc(groupId);
   const doc = await groupRef.get();
   if (doc.exists) {
