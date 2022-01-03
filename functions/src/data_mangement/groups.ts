@@ -1,8 +1,11 @@
 import { Group, Member } from "../types/types";
 import { getUserName } from "../utilities/users";
+import { getFirestore } from "firebase-admin/firestore";
+import { rotateGroupTasks } from "../utilities/groupUtilities";
 type DocumentReference = FirebaseFirestore.DocumentReference;
 
 const NO_NAME = "Person Not In System";
+const db = getFirestore();
 
 /**
  * Updates the specified group with the passed values
@@ -36,7 +39,7 @@ export async function groupCreate(
     let changed = false;
     await Promise.all(
       data.members.map(async (mem: Member) => {
-        if (mem.name == NO_NAME) {
+        if (!mem.name || mem.name == NO_NAME) {
           const name = await getUserName(mem.id);
           changed = true;
           mem.name = name;
@@ -46,5 +49,15 @@ export async function groupCreate(
     if (changed) {
       updateGroup(data as Group, snapshot.ref);
     }
+  }
+}
+
+export async function assignTasks(groupId: string) {
+  const groupRef = db.collection("groups").doc(groupId);
+  const doc = await groupRef.get();
+  if (doc.exists) {
+    const data = doc.data() as Group;
+    const newGroup = rotateGroupTasks(data);
+    groupRef.set(newGroup);
   }
 }

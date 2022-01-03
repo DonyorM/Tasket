@@ -1,3 +1,5 @@
+import moment, { unitOfTime } from "moment";
+
 enum DueDate {
   NoDueDate,
   Monday,
@@ -28,6 +30,16 @@ export const dueDateToString = (date: DueDate) => {
     case DueDate.Sunday:
       return "Sunday";
   }
+};
+
+export const convertDayToDate = (
+  dueDate: DueDate,
+  startDate?: moment.Moment
+) => {
+  const startingDate = startDate ?? moment().isoWeekday(1);
+  return startingDate
+    .clone()
+    .weekday(dueDate === DueDate.NoDueDate ? DueDate.Sunday : dueDate);
 };
 
 export const allDates = [

@@ -1,8 +1,8 @@
 import * as functions from "firebase-functions";
-import { groupCreate } from "./data_mangement/groups";
-import admin = require("firebase-admin");
+import { initializeApp } from "firebase-admin/app";
+import * as groupManagement from "./data_mangement/groups";
 
-admin.initializeApp();
+initializeApp();
 
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
@@ -14,4 +14,8 @@ admin.initializeApp();
 
 export const createGroup = functions.firestore
   .document("groups/{docId}")
-  .onCreate(groupCreate);
+  .onCreate(groupManagement.groupCreate);
+
+export const rotateTasks = functions.https.onCall(({ groupId }) => {
+  groupManagement.assignTasks(groupId);
+});

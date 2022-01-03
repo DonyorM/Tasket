@@ -1,7 +1,7 @@
 import DueDate from "./DueDate";
 
 export interface Member {
-  name: string;
+  name: string | null | undefined;
   id: string;
 }
 
@@ -10,12 +10,17 @@ export interface Task {
   dueDate: DueDate;
   description?: string;
   completed?: boolean;
+  assignedId?: string;
+  assignedName?: string;
 }
 
 export interface Group {
   name: string;
   resetDay: DueDate;
   members: Member[];
+  memberEmails: string[];
   tasks: Task[];
-  admin: string
+  admin: string;
+  currentOffset?: number;
+  currentStartDate: string;
 }

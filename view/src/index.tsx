@@ -10,15 +10,17 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Home from "./routes/Home";
 import NotFound from "./routes/NotFound";
 import CreateGroup from "./routes/CreateGroup";
+import ViewGroup from "./routes/ViewGroup";
 
 ReactDOM.render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />}/>
+        <Route path="/login" element={<Login />} />
         <Route path="/" element={<App />}>
           <Route path="" element={<Home />} />
           <Route path="create-group" element={<CreateGroup />} />
+          <Route path="group/:groupId" element={<ViewGroup />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

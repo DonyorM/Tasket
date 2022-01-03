@@ -35,6 +35,7 @@ function CreateGroup({ user }: AuthProps) {
       tasks: tasks,
       members: members,
       admin: userEmail,
+      memberEmails: members.map((x) => x.id),
     };
 
     const newDoc = await addDoc(collection(db, "groups"), newGroup);
@@ -44,7 +45,7 @@ function CreateGroup({ user }: AuthProps) {
   function addMember() {
     const newMemberObj: Member = {
       id: newMember,
-      name: "Person Not In System",
+      name: null,
     };
     if (members.some((mem) => mem.id == newMemberObj.id)) {
       // TODO proper messaging for duplicates
