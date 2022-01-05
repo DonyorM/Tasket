@@ -11,6 +11,12 @@ import Home from "./routes/Home";
 import NotFound from "./routes/NotFound";
 import CreateGroup from "./routes/CreateGroup";
 import ViewGroup from "./routes/ViewGroup";
+import dayjs from "dayjs";
+import isoWeek from "dayjs/plugin/isoWeek";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+
+dayjs.extend(isoWeek);
+dayjs.extend(customParseFormat);
 
 ReactDOM.render(
   <React.StrictMode>

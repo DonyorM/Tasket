@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+
 enum DueDate {
   NoDueDate = -1,
   Sunday,
@@ -30,14 +32,6 @@ export const dueDateToString = (date: DueDate) => {
   }
 };
 
-export const convertDayToDate = (dueDate: DueDate, startDate?: Date) => {
-  const startingDate = startDate || getPreviousMonday();
-  return moveToNextDay(
-    startingDate,
-    DueDate.NoDueDate === dueDate ? DueDate.Sunday : dueDate
-  );
-};
-
 export const allDates = [
   DueDate.NoDueDate,
   DueDate.Sunday,
@@ -49,19 +43,24 @@ export const allDates = [
   DueDate.Saturday,
 ];
 
-export const getPreviousMonday = (date: Date | null = null) => {
-  const prevMonday = (date && new Date(date.valueOf())) || new Date();
-  prevMonday.setDate(prevMonday.getDate() - ((prevMonday.getDay() + 6) % 7));
-  return prevMonday;
+export const getPreviousMonday = (date: dayjs.Dayjs | null = null) => {
+  const inDate = date || dayjs();
+  return inDate.startOf("isoWeek");
+};
+
+export const convertDayToDate = (dueDate: DueDate, startDate?: dayjs.Dayjs) => {
+  const startingDate = startDate || getPreviousMonday();
+  return moveToNextDay(
+    startingDate,
+    DueDate.NoDueDate === dueDate ? DueDate.Sunday : dueDate
+  );
 };
 
 // Pulled from here: https://stackoverflow.com/a/11789820/2719960
-export const moveToNextDay = (startDate: Date, targetDay: DueDate) => {
-  const date = new Date(startDate.getTime());
-  let currentDay = startDate.getDay();
-  let distance = (targetDay + 7 - currentDay) % 7;
-  date.setDate(date.getDate() + distance);
-  return date;
+export const moveToNextDay = (startDate: dayjs.Dayjs, targetDay: DueDate) => {
+  const currentDay = startDate.day();
+  const distance = (targetDay + 7 - currentDay) % 7;
+  return startDate.add(distance, "day");
 };
 
 export default DueDate;

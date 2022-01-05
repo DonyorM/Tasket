@@ -8,6 +8,7 @@ export function rotateGroupTasks(group: Group): Group {
   let adjustment = 0;
   const newTasks = [...group.tasks];
   for (const task of newTasks) {
+    task.completed = false;
     let memberIndex = i + currentOffset + adjustment;
     if (memberIndex >= group.memberEmails.length) {
       memberIndex = memberIndex - group.memberEmails.length;

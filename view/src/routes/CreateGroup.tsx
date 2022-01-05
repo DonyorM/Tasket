@@ -39,7 +39,7 @@ function CreateGroup({ user }: AuthProps) {
       members: members,
       admin: userEmail,
       memberEmails: members.map((x) => x.id),
-      currentStartDate: getPreviousMonday().toLocaleDateString("en-CA"),
+      currentStartDate: getPreviousMonday().format("YYYY-MM-DD"),
     };
 
     const newDoc = await addDoc(collection(db, "groups"), newGroup);

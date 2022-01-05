@@ -1,3 +1,5 @@
+import * as dayjs from "dayjs";
+
 enum DueDate {
   NoDueDate,
   Monday,
@@ -8,6 +10,20 @@ enum DueDate {
   Saturday,
   Sunday,
 }
+
+export const convertDayToDate = (dueDate: DueDate, startDate: dayjs.Dayjs) => {
+  return moveToNextDay(
+    startDate,
+    DueDate.NoDueDate === dueDate ? DueDate.Sunday : dueDate
+  );
+};
+
+// Pulled from here: https://stackoverflow.com/a/11789820/2719960
+export const moveToNextDay = (startDate: dayjs.Dayjs, targetDay: DueDate) => {
+  const currentDay = startDate.day();
+  const distance = (targetDay + 7 - currentDay) % 7;
+  return startDate.add(distance, "day");
+};
 
 export const dueDateToString = (date: DueDate): string => {
   switch (+date) {

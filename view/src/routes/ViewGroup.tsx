@@ -14,10 +14,12 @@ import { faMinusCircle, faUserMinus } from "@fortawesome/free-solid-svg-icons";
 import TasketDialog from "../components/TasketDialog";
 import FloatingLabelInput from "../components/FloatingLabelInput";
 import Select from "../components/Select";
+import dayjs from "dayjs";
 const db = getFirestore();
 const functions = getFunctions();
 const rotateTasks = httpsCallable(functions, "rotateTasks");
 const addMemberToGroup = httpsCallable(functions, "addMemberToGroup");
+const manuallyRotateStuff = httpsCallable(functions, "manuallyRunDailyTasks");
 
 interface UserRowProps {
   tasks: Task[] | undefined;
@@ -41,10 +43,9 @@ function UserRow({
       <Fragment>
         {tasks.map((task, index) => {
           const relativeDueDate = convertDayToDate(task.dueDate);
-          const beginningOfNextDay = new Date();
-          beginningOfNextDay.setDate(relativeDueDate.getDate() + 1);
+          const beginningOfNextDay = relativeDueDate.add(1, "day");
           let completedText = task.completed ? "Complete" : "Incomplete";
-          if (new Date() > beginningOfNextDay) {
+          if (dayjs().isAfter(beginningOfNextDay)) {
             completedText = "Overdue";
           }
           return (
@@ -54,12 +55,7 @@ function UserRow({
               </span>
               <span>{task.name}</span>
               <span>{completedText}</span>
-              <span>
-                {relativeDueDate.toLocaleDateString(undefined, {
-                  month: "2-digit",
-                  day: "2-digit",
-                })}
-              </span>
+              <span>{relativeDueDate.format("MM/DD")}</span>
               {isAdmin ? (
                 <Fragment>
                   <span className="col-span-2 flex justify-center p-1">

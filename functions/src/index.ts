@@ -2,6 +2,9 @@ import * as admin from "firebase-admin";
 admin.initializeApp();
 import * as functions from "firebase-functions";
 import * as groupManagement from "./data_mangement/groups";
+import * as customParseFormat from "dayjs/plugin/customParseFormat";
+import * as dayjs from "dayjs";
+dayjs.extend(customParseFormat);
 
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
@@ -30,4 +33,17 @@ export const addMemberToGroup = functions.https.onCall(
     );
     return await groupManagement.addMemberToGroup(groupId, memberId);
   }
+);
+
+export const scheuledRunDailyTasks = functions.pubsub
+  .schedule("5 3 * * *")
+  .timeZone("America/New_York")
+  .onRun(async () => {
+    functions.logger.info("Running daily tasks!");
+    await groupManagement.dailyRotation();
+    return null;
+  });
+
+export const manuallyRunDailyTasks = functions.https.onCall(
+  groupManagement.dailyRotation
 );
