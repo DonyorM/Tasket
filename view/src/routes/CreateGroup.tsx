@@ -1,12 +1,11 @@
 import { faPlus, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { addDoc, collection, doc, getFirestore } from "firebase/firestore";
+import { addDoc, collection, getFirestore } from "firebase/firestore";
 import { Fragment, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { Button, IconButton } from "../components/Button";
 import FloatingLabelInput from "../components/FloatingLabelInput";
 import Select from "../components/Select";
-import TasketDialog from "../components/TasketDialog";
 import withAuth, { AuthProps } from "../components/withAuth";
 import DueDate, {
   dueDateToString,
@@ -51,7 +50,7 @@ function CreateGroup({ user }: AuthProps) {
       id: newMember,
       name: null,
     };
-    if (members.some((mem) => mem.id == newMemberObj.id)) {
+    if (members.some((mem) => mem.id === newMemberObj.id)) {
       // TODO proper messaging for duplicates
       return;
     }
@@ -71,7 +70,7 @@ function CreateGroup({ user }: AuthProps) {
       name: taskName,
       dueDate: dueDate,
     };
-    if (tasks.some((task) => task.name == newTaskObj.name)) {
+    if (tasks.some((task) => task.name === newTaskObj.name)) {
       // TODO proper messaging for duplicates
       return;
     }

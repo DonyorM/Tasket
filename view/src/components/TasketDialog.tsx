@@ -1,7 +1,7 @@
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Dialog } from "@headlessui/react";
-import { Button, IconButton } from "./Button";
+import { IconButton } from "./Button";
 
 interface DialogProps {
   open: boolean;

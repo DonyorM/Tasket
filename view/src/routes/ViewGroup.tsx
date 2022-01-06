@@ -19,7 +19,6 @@ const db = getFirestore();
 const functions = getFunctions();
 const rotateTasks = httpsCallable(functions, "rotateTasks");
 const addMemberToGroup = httpsCallable(functions, "addMemberToGroup");
-const manuallyRotateStuff = httpsCallable(functions, "manuallyRunDailyTasks");
 
 interface UserRowProps {
   tasks: Task[] | undefined;
@@ -127,9 +126,9 @@ function ViewGroup({ user }: AuthProps) {
 
   function removeUser(toRemove: string) {
     const newGroup = { ...groupData };
-    const newMembers = newGroup.members.filter((x) => x.id != toRemove);
+    const newMembers = newGroup.members.filter((x) => x.id !== toRemove);
     newGroup.members = newMembers;
-    newGroup.memberEmails = newGroup.memberEmails.filter((x) => x != toRemove);
+    newGroup.memberEmails = newGroup.memberEmails.filter((x) => x !== toRemove);
     newGroup.tasks = newGroup.tasks.map((task) => {
       if (task.assignedId === toRemove) {
         const newTask = { ...task };
@@ -148,7 +147,7 @@ function ViewGroup({ user }: AuthProps) {
 
   function removeTask(toRemove: string) {
     const newGroup = { ...groupData };
-    newGroup.tasks = newGroup.tasks.filter((x) => x.name != toRemove);
+    newGroup.tasks = newGroup.tasks.filter((x) => x.name !== toRemove);
     const ref = groupDoc?.ref;
     if (ref) {
       setDoc(ref, newGroup);
