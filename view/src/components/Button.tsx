@@ -14,7 +14,7 @@ export const BaseButton: React.FC<any> = ({
     <Component
       className={`inline-block px-3 py-2 rounded-md bg-transparent text-gray-300 ring-1 ${ringColor} ${
         className || ""
-      }`}
+      } hover:ring-gray-300 hover:text-gray-100 hover:bg-gray-300/25 active:bg-gray-100/25`}
       {...remaining}
     >
       {children}

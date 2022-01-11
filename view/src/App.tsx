@@ -1,12 +1,10 @@
-import React, { createContext } from "react";
-import logo from "./logo.svg";
 import "./App.css";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { getAuth, signOut } from "firebase/auth";
 import Loading from "./components/Loading";
 import { UserContext } from "./utilities/contexts";
-import { Button, DarkBorderButton, LinkButton } from "./components/Button";
+import { DarkBorderButton, LinkButton } from "./components/Button";
 
 const auth = getAuth();
 

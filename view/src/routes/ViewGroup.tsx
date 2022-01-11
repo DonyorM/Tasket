@@ -15,6 +15,7 @@ import TasketDialog from "../components/TasketDialog";
 import FloatingLabelInput from "../components/FloatingLabelInput";
 import Select from "../components/Select";
 import dayjs from "dayjs";
+import { useSmMediaMatch } from "../utilities/useMediaMatch";
 const db = getFirestore();
 const functions = getFunctions();
 const rotateTasks = httpsCallable(functions, "rotateTasks");
@@ -58,12 +59,12 @@ function UserRow({
               <span>{relativeDueDate.format("MM/DD")}</span>
               {isAdmin ? (
                 <Fragment>
-                  <span className="col-span-2 flex justify-center p-1">
+                  <span className="col-span-2 sm:col-span-1 flex justify-center p-1">
                     <IconButton onClick={() => removeUser(userEmail)}>
                       <FontAwesomeIcon icon={faUserMinus} />
                     </IconButton>
                   </span>
-                  <span className="col-span-2 flex justify-center p-1">
+                  <span className="col-span-2 sm:col-span-1 flex justify-center p-1">
                     <IconButton onClick={() => removeTask(task.name)}>
                       <FontAwesomeIcon icon={faMinusCircle} />
                     </IconButton>
@@ -98,6 +99,7 @@ function ViewGroup({ user }: AuthProps) {
   const [showAddTaskDialog, setShowAddTaskDialog] = useState(false);
   const [newTaskText, setNewTaskText] = useState("");
   const [newTaskDueDate, setNewTaskDueDate] = useState(DueDate.NoDueDate);
+  const isSmall = useSmMediaMatch();
   if (!groupId) {
     return <NotFound />;
   }
@@ -189,12 +191,24 @@ function ViewGroup({ user }: AuthProps) {
         <Button onClick={markComplete}>Mark Complete</Button>
         {isAdmin ? <Button onClick={reassignTasks}>Reassign Tasks</Button> : ""}
       </div>
-      <div className="grid grid-cols-4 divide-x divide-y divide-gray-200/10 ring-1 ring-gray-200/10 rounded-md m-2 text-center">
+      <div
+        className={`grid grid-cols-4 ${
+          isAdmin ? "sm:grid-cols-[1fr_1fr_1fr_1fr_2em_2em]" : ""
+        } divide-x divide-y divide-gray-200/10 ring-1 ring-gray-200/10 rounded-md m-2 text-center`}
+      >
         <h2 className="text-2xl text-center col-span-full">Task Assignments</h2>
         <span className="font-bold">Assigned</span>
         <span className="font-bold">Task</span>
         <span className="font-bold">Completed</span>
         <span className="font-bold">Due Date</span>
+        {isSmall && isAdmin ? (
+          <>
+            <span></span>
+            <span></span>
+          </>
+        ) : (
+          ""
+        )}
         <UserRow
           tasks={groupData.tasks.filter(
             (x) => x.assignedId === (user.email as string)
