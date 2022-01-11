@@ -26,21 +26,30 @@ function App() {
   return (
     <div className="bg-gray-800 h-screen text-gray-300">
       <header className="mb-2">
-        <nav className="py-4 px-6 text-sm font-medium bg-sky-800 rounded-b-md">
-          <ul className="flex space-x-3">
-            <li>
-              <LinkButton to="/" variant="dark">Home</LinkButton>
-            </li>
-            <li>
-              <DarkBorderButton
-                onClick={() => {
-                  signOut(auth);
-                }}
-              >
-                Sign Out
-              </DarkBorderButton>
-            </li>
-          </ul>
+        <nav className="py-4 px-6 text-sm font-medium bg-sky-800 rounded-b-md flex place-content-between">
+          <div className="inline-block">
+            <ul className="flex space-x-3">
+              <li>
+                <LinkButton to="/" variant="dark">
+                  Home
+                </LinkButton>
+              </li>
+            </ul>
+          </div>
+          <h1 className="text-4xl inline-block">Tasket</h1>
+          <div className="inline-block">
+            <ul>
+              <li>
+                <DarkBorderButton
+                  onClick={() => {
+                    signOut(auth);
+                  }}
+                >
+                  Sign Out
+                </DarkBorderButton>
+              </li>
+            </ul>
+          </div>
         </nav>
       </header>
       <UserContext.Provider value={user}>

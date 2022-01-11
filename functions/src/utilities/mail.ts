@@ -2,7 +2,7 @@ import * as nodemailer from "nodemailer";
 import * as functions from "firebase-functions";
 
 export const mailTransport = nodemailer.createTransport({
-  host: "smtp-relay.sendinblue.com",
+  host: "smtp.sendgrid.net",
   port: 587,
   secure: false,
   auth: functions.config().smtp,
@@ -18,7 +18,7 @@ export async function sendMessage(
   htmlText?: string
 ) {
   const message = {
-    from: functions.config().smtp.user,
+    from: functions.config().mail.from,
     to: to,
     subject: subject,
     text: text,

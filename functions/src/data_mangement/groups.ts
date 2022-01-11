@@ -65,8 +65,19 @@ export async function groupCreate(
       data.members.map(async (mem: Member) => {
         if (!mem.name || mem.name == NO_NAME) {
           const name = await getUserName(mem.id);
-          changed = true;
-          mem.name = name;
+          if (!name) {
+            // If name is false then the user is not in the system
+            sendMessage(
+              mem.id,
+              "Welcome to Tasket",
+              `You've been invited to the Tasket Group ${data.name}. In order to view your tasks signup at http://tasket.manilas.net/login?preCreatedEmail=${mem.id}`,
+              `You've been invited to the Tasket Group ${data.name}. In order to view your tasks signup at 
+            <a href="http://tasket.manilas.net/login?preCreatedEmail=${mem.id}">http://tasket.manilas.net/login?preCreatedEmail=${mem.id}</a>"`
+            );
+          } else {
+            mem.name = name;
+            changed = true;
+          }
         }
       })
     );
@@ -188,4 +199,40 @@ export async function dailyRotation(): Promise<void> {
       sendReminderEmails(group);
     }
   });
+}
+
+export async function swapOutMember(
+  newMemberEmail: string,
+  toReplaceEmail?: string
+): Promise<void> {
+  const findEmail = toReplaceEmail ?? newMemberEmail;
+  const memberName = await getUserName(newMemberEmail);
+  const snapshot = await db
+    .collection("groups")
+    .where("memberEmails", "array-contains", findEmail)
+    .get();
+  for (const doc of snapshot.docs) {
+    const data = doc.data() as Group;
+    functions.logger.info("Updating group id:", doc.id, "and name", data.name);
+    if (findEmail !== newMemberEmail) {
+      const index = data.memberEmails.indexOf(findEmail);
+      if (index !== -1) {
+        data.memberEmails[index] = newMemberEmail;
+      }
+      for (const member of data.members) {
+        if (member.id === findEmail) {
+          member.id = newMemberEmail;
+          member.name = memberName;
+          break;
+        }
+      }
+    }
+    data.tasks.forEach((task) => {
+      if (task.assignedId === findEmail) {
+        task.assignedId = newMemberEmail;
+        task.assignedName = memberName;
+      }
+    });
+    await updateGroup(data, doc.ref);
+  }
 }

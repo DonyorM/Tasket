@@ -47,3 +47,9 @@ export const scheuledRunDailyTasks = functions.pubsub
 export const manuallyRunDailyTasks = functions.https.onCall(
   groupManagement.dailyRotation
 );
+
+export const swapOutMember = functions.https.onCall(
+  async ({ newEmail, oldEmail }) => {
+    groupManagement.swapOutMember(newEmail, oldEmail);
+  }
+);

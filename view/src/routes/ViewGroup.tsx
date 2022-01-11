@@ -19,6 +19,7 @@ const db = getFirestore();
 const functions = getFunctions();
 const rotateTasks = httpsCallable(functions, "rotateTasks");
 const addMemberToGroup = httpsCallable(functions, "addMemberToGroup");
+const manuallyRunDailyTasks = httpsCallable(functions, "manuallyRunDailyTasks");
 
 interface UserRowProps {
   tasks: Task[] | undefined;

@@ -5,12 +5,20 @@ import { getAuth } from "firebase/auth";
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import { useNavigate } from "react-router";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { useSearchParams } from "react-router-dom";
+dayjs.extend(utc);
+
+const functions = getFunctions();
+const swapOutMember = httpsCallable(functions, "swapOutMember");
 
 const auth = getAuth();
 
 function SignInScreen() {
-
   const navigate = useNavigate();
+  let [searchParams] = useSearchParams();
 
   // Configure FirebaseUI.
   const uiConfigMap = {
@@ -18,7 +26,19 @@ function SignInScreen() {
     signInFlow: "popup",
     // We will display Google and Facebook as auth providers.
     callbacks: {
-      signInSuccess: () => {navigate("/")}
+      signInSuccess: (currentUser) => {
+        const creationTime = dayjs.utc(currentUser.metadata.creationTime);
+        const fiveMinutesAgo = dayjs().utc().subtract(5, 'minute');
+        if (creationTime.isAfter(fiveMinutesAgo)) {
+          const oldEmail = searchParams.get("preCreatedEmail");
+          console.log("Old email is:", oldEmail);
+          swapOutMember({
+            newEmail: currentUser.email,
+            oldEmail: oldEmail ?? undefined
+          });
+        }
+        navigate("/");
+      },
     },
     signInOptions: [firebase.auth.EmailAuthProvider.PROVIDER_ID],
   };
