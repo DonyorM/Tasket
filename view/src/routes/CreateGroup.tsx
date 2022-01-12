@@ -77,7 +77,7 @@ function CreateGroup({ user }: AuthProps) {
     const newTasksList = [...tasks, newTaskObj];
     setTasks(newTasksList);
     setTaskName("");
-    setDueDate(0);
+    setDueDate(DueDate.NoDueDate);
     newTaskRef.current?.focus();
   }
 

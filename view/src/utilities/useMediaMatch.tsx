@@ -14,7 +14,7 @@ const useMediaMatch = (mediaQuery: string) => {
     return () => {
       mediaMatch.removeEventListener("change", updateMatch);
     };
-  });
+  }, [mediaQuery]);
 
   return doesMatch;
 };

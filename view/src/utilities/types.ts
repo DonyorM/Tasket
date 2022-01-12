@@ -3,6 +3,7 @@ import DueDate from "./DueDate";
 export interface Member {
   name: string | null | undefined;
   id: string;
+  unsubscribed?: boolean;
 }
 
 export interface Task {

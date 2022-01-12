@@ -8,7 +8,12 @@ import {
 } from "firebase-admin/firestore";
 import dayjs = require("dayjs");
 import { convertDayToDate } from "../types/DueDate";
-import { sendMessage } from "../utilities/mail";
+import {
+  addHtmlUnsubscribeMessage,
+  addPlainUnsubscribeMessage,
+  convertPlainToHtml,
+  sendMessage,
+} from "../utilities/mail";
 import * as functions from "firebase-functions";
 type DocumentReference = FirebaseFirestore.DocumentReference;
 
@@ -38,7 +43,7 @@ export async function addMemberToGroup(
   if (groupDoc.exists) {
     const group = groupDoc.data() as Group;
     group.memberEmails = [...group.memberEmails, memberEmail];
-    group.members = [...group.members, { id: memberEmail, name: name }];
+    group.members = [...group.members, { id: memberEmail, name: name || "" }];
     groupRef.set(group);
   }
 }
@@ -134,10 +139,16 @@ async function saveHistory(
   }
 }
 
-export async function sendNewTaskEmails(group: Group): Promise<void[]> {
+export async function sendNewTaskEmails(
+  group: Group,
+  groupId: string
+): Promise<void[]> {
   const startDate = dayjs(group.currentStartDate, "YYYY-MM-DD", true);
   return Promise.all(
     group.members.map(async (member) => {
+      if (member.unsubscribed) {
+        return;
+      }
       const memberTasks = group.tasks.filter((x) => x.assignedId === member.id);
       const plural = memberTasks.length == 1;
       const memberText = memberTasks
@@ -155,13 +166,21 @@ export async function sendNewTaskEmails(group: Group): Promise<void[]> {
           plural ? "are" : "is"
         }:
         ${memberText}`;
-        return await sendMessage(member.id, `Tasks for ${group.name}`, message);
+        return await sendMessage(
+          member.id,
+          `Tasks for ${group.name}`,
+          addPlainUnsubscribeMessage(message, groupId),
+          addHtmlUnsubscribeMessage(convertPlainToHtml(message), groupId)
+        );
       }
     })
   );
 }
 
-export async function sendReminderEmails(group: Group): Promise<void[]> {
+export async function sendReminderEmails(
+  group: Group,
+  groupId: string
+): Promise<void[]> {
   return Promise.all(
     group.tasks.map(async (task) => {
       if (task.completed || !task.assignedId) {
@@ -170,11 +189,18 @@ export async function sendReminderEmails(group: Group): Promise<void[]> {
       const now = dayjs();
       const tomorrowDayNumber = now.day() === 6 ? 0 : now.day() + 1;
       if ((task.dueDate as number) == tomorrowDayNumber) {
-        const message = `Hello ${task.assignedName},
+        const member = group.members.find((x) => x.id === task.assignedId);
+        if (member && !member.unsubscribed) {
+          const messagePlain = `Hello ${task.assignedName},
         
-        Your task ${task.name} for group ${group.name} is due tomorrow, don't forget to finish it!`;
-
-        sendMessage(task.assignedId, "Task Due Soon!", message);
+          Your task ${task.name} for group ${group.name} is due tomorrow, don't forget to finish it!`;
+          sendMessage(
+            task.assignedId,
+            "Task Due Soon!",
+            addPlainUnsubscribeMessage(messagePlain, groupId),
+            addHtmlUnsubscribeMessage(convertPlainToHtml(messagePlain), groupId)
+          );
+        }
       }
     })
   );
@@ -194,9 +220,9 @@ export async function dailyRotation(): Promise<void> {
       await saveHistory(doc, group);
       group.currentStartDate = dayjs().format("YYYY-MM-DD");
       group = await assignTasksInternal(doc.ref, group);
-      await sendNewTaskEmails(group);
+      await sendNewTaskEmails(group, doc.id);
     } else {
-      sendReminderEmails(group);
+      sendReminderEmails(group, doc.id);
     }
   });
 }
@@ -222,7 +248,7 @@ export async function swapOutMember(
       for (const member of data.members) {
         if (member.id === findEmail) {
           member.id = newMemberEmail;
-          member.name = memberName;
+          member.name = memberName || "";
           break;
         }
       }
@@ -230,7 +256,7 @@ export async function swapOutMember(
     data.tasks.forEach((task) => {
       if (task.assignedId === findEmail) {
         task.assignedId = newMemberEmail;
-        task.assignedName = memberName;
+        task.assignedName = memberName || "";
       }
     });
     await updateGroup(data, doc.ref);

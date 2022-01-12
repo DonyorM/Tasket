@@ -14,6 +14,7 @@ import ViewGroup from "./routes/ViewGroup";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import Unsubscribe from "./routes/Unsubscribe";
 
 dayjs.extend(isoWeek);
 dayjs.extend(customParseFormat);
@@ -27,6 +28,7 @@ ReactDOM.render(
           <Route path="" element={<Home />} />
           <Route path="create-group" element={<CreateGroup />} />
           <Route path="group/:groupId" element={<ViewGroup />} />
+          <Route path="unsubscribe" element={<Unsubscribe />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
