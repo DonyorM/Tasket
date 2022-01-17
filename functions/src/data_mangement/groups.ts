@@ -1,4 +1,4 @@
-import { Group, GroupHistory, Member } from "../types/types";
+import { Group, GroupHistory } from "../types/types";
 import { getUserName } from "../utilities/users";
 import { rotateGroupTasks } from "../utilities/groupUtilities";
 import {
@@ -57,7 +57,7 @@ export async function addMemberToGroup(
  * @returns
  */
 export async function groupCreate(
-  snapshot: FirebaseFirestore.QueryDocumentSnapshot
+  snapshot: FirebaseFirestore.DocumentSnapshot
 ): Promise<void> {
   if (snapshot.exists) {
     const dataVal = snapshot.data();
@@ -66,26 +66,24 @@ export async function groupCreate(
     }
     const data = dataVal as Group;
     let changed = false;
-    await Promise.all(
-      data.members.map(async (mem: Member) => {
-        if (!mem.name || mem.name == NO_NAME) {
-          const name = await getUserName(mem.id);
-          if (!name) {
-            // If name is false then the user is not in the system
-            sendMessage(
-              mem.id,
-              "Welcome to Tasket",
-              `You've been invited to the Tasket Group ${data.name}. In order to view your tasks signup at http://tasket.manilas.net/login?preCreatedEmail=${mem.id}`,
-              `You've been invited to the Tasket Group ${data.name}. In order to view your tasks signup at 
+    for (const mem of data.members) {
+      if (!mem.name || mem.name == NO_NAME) {
+        const name = await getUserName(mem.id);
+        if (!name) {
+          // If name is false then the user is not in the system
+          sendMessage(
+            mem.id,
+            "Welcome to Tasket",
+            `You've been invited to the Tasket Group ${data.name}. In order to view your tasks signup at http://tasket.manilas.net/login?preCreatedEmail=${mem.id}`,
+            `You've been invited to the Tasket Group ${data.name}. In order to view your tasks signup at 
             <a href="http://tasket.manilas.net/login?preCreatedEmail=${mem.id}">http://tasket.manilas.net/login?preCreatedEmail=${mem.id}</a>"`
-            );
-          } else {
-            mem.name = name;
-            changed = true;
-          }
+          );
+        } else {
+          mem.name = name;
+          changed = true;
         }
-      })
-    );
+      }
+    }
     if (changed) {
       updateGroup(data as Group, snapshot.ref);
     }

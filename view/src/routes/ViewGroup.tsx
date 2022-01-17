@@ -20,7 +20,7 @@ const db = getFirestore();
 const functions = getFunctions();
 const rotateTasks = httpsCallable(functions, "rotateTasks");
 const addMemberToGroup = httpsCallable(functions, "addMemberToGroup");
-const manuallyRunDailyTasks = httpsCallable(functions, "manuallyRunDailyTasks");
+const manualGroupCreate = httpsCallable(functions, "manualGroupCreate");
 
 interface UserRowProps {
   tasks: Task[] | undefined;
@@ -239,6 +239,9 @@ function ViewGroup({ user }: AuthProps) {
             Add Member
           </Button>
           <Button onClick={() => setShowAddTaskDialog(true)}>Add Task</Button>
+          <Button onClick={() => manualGroupCreate({ groupId: groupDoc?.id })}>
+            Check for Names
+          </Button>
         </div>
       ) : (
         ""

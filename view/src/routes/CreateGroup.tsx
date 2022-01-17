@@ -47,7 +47,7 @@ function CreateGroup({ user }: AuthProps) {
 
   function addMember() {
     const newMemberObj: Member = {
-      id: newMember,
+      id: newMember.trim(),
       name: null,
     };
     if (members.some((mem) => mem.id === newMemberObj.id)) {

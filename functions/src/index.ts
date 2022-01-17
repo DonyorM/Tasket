@@ -4,7 +4,10 @@ import * as functions from "firebase-functions";
 import * as groupManagement from "./data_mangement/groups";
 import * as customParseFormat from "dayjs/plugin/customParseFormat";
 import * as dayjs from "dayjs";
+import { getFirestore } from "firebase-admin/firestore";
 dayjs.extend(customParseFormat);
+
+const db = getFirestore();
 
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
@@ -17,6 +20,11 @@ dayjs.extend(customParseFormat);
 export const createGroup = functions.firestore
   .document("groups/{docId}")
   .onCreate(groupManagement.groupCreate);
+
+export const manualGroupCreate = functions.https.onCall(async ({ groupId }) => {
+  const snapshot = await db.doc(`groups/${groupId}`).get();
+  groupManagement.groupCreate(snapshot);
+});
 
 export const rotateTasks = functions.https.onCall(async ({ groupId }) => {
   functions.logger.info("Rotating tasks for group", groupId);
