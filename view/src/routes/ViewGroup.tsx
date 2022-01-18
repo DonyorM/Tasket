@@ -2,11 +2,11 @@ import { doc, getFirestore, setDoc } from "@firebase/firestore";
 import { Fragment, useState } from "react";
 import { useDocument } from "react-firebase-hooks/firestore";
 import { useParams } from "react-router";
-import { Button, IconButton } from "../components/Button";
+import { Button, IconButton, LinkButton } from "../components/Button";
 import Loading from "../components/Loading";
 import withAuth, { AuthProps } from "../components/withAuth";
 import DueDate, { convertDayToDate } from "../utilities/DueDate";
-import { Group, Task } from "../utilities/types";
+import { Group, Member, Task } from "../utilities/types";
 import NotFound from "./NotFound";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -16,6 +16,7 @@ import FloatingLabelInput from "../components/FloatingLabelInput";
 import Select from "../components/Select";
 import dayjs from "dayjs";
 import { useSmMediaMatch } from "../utilities/useMediaMatch";
+import ConfirmDialog from "../components/ConfirmDialog";
 const db = getFirestore();
 const functions = getFunctions();
 const rotateTasks = httpsCallable(functions, "rotateTasks");
@@ -26,8 +27,8 @@ interface UserRowProps {
   tasks: Task[] | undefined;
   userEmail: string;
   memberName?: string | null;
-  removeTask: (taskName: string) => void;
-  removeUser: (userId: string) => void;
+  removeTask: (task: Task) => void;
+  removeUser: (user: Member) => void;
   isAdmin?: boolean;
 }
 
@@ -39,7 +40,7 @@ function UserRow({
   removeUser,
   isAdmin,
 }: UserRowProps) {
-  if (tasks) {
+  if (tasks && tasks?.length > 0) {
     return (
       <Fragment>
         {tasks.map((task, index) => {
@@ -54,18 +55,22 @@ function UserRow({
               <span className="break-words">
                 {task.assignedName || task.assignedId}
               </span>
-              <span>{task.name}</span>
+              <span className="break-words">{task.name}</span>
               <span>{completedText}</span>
               <span>{relativeDueDate.format("MM/DD")}</span>
               {isAdmin ? (
                 <Fragment>
                   <span className="col-span-2 sm:col-span-1 flex justify-center p-1">
-                    <IconButton onClick={() => removeUser(userEmail)}>
+                    <IconButton
+                      onClick={() =>
+                        removeUser({ id: userEmail, name: memberName })
+                      }
+                    >
                       <FontAwesomeIcon icon={faUserMinus} />
                     </IconButton>
                   </span>
                   <span className="col-span-2 sm:col-span-1 flex justify-center p-1">
-                    <IconButton onClick={() => removeTask(task.name)}>
+                    <IconButton onClick={() => removeTask(task)}>
                       <FontAwesomeIcon icon={faMinusCircle} />
                     </IconButton>
                   </span>
@@ -82,8 +87,24 @@ function UserRow({
     const name = memberName || userEmail;
     return (
       <Fragment>
-        <span>{name}</span>
-        <span className="col-span-3">No task. Enjoy the break!</span>
+        <span className="break-words">{name}</span>
+        <span className="col-span-3 break-words">
+          No task. Enjoy the break!
+        </span>
+        {isAdmin ? (
+          <Fragment>
+            <span className="col-span-2 sm:col-span-1 flex justify-center p-1">
+              <IconButton
+                onClick={() => removeUser({ id: userEmail, name: memberName })}
+              >
+                <FontAwesomeIcon icon={faUserMinus} />
+              </IconButton>
+            </span>
+            <span className="col-span-2 sm:col-span-1 flex justify-center p-1"></span>
+          </Fragment>
+        ) : (
+          ""
+        )}
       </Fragment>
     );
   }
@@ -99,6 +120,10 @@ function ViewGroup({ user }: AuthProps) {
   const [showAddTaskDialog, setShowAddTaskDialog] = useState(false);
   const [newTaskText, setNewTaskText] = useState("");
   const [newTaskDueDate, setNewTaskDueDate] = useState(DueDate.NoDueDate);
+  const [removeUserConfirmation, setRemoveUserConfirmation] =
+    useState<Member | null>(null);
+  const [removeTaskConfirmation, setRemoveTaskConfirmation] =
+    useState<Task | null>(null);
   const isSmall = useSmMediaMatch();
   if (!groupId) {
     return <NotFound />;
@@ -187,9 +212,10 @@ function ViewGroup({ user }: AuthProps) {
   return (
     <>
       <h1 className="text-4xl text-center">{groupData.name}</h1>
-      <div className="flex place-content-between px-2">
+      <div className="flex place-content-between px-2 gap-2">
         <Button onClick={markComplete}>Mark Complete</Button>
         {isAdmin ? <Button onClick={reassignTasks}>Reassign Tasks</Button> : ""}
+        <LinkButton to={`/group/${groupId}/history`}>View History</LinkButton>
       </div>
       <div
         className={`grid grid-cols-4 ${
@@ -216,8 +242,8 @@ function ViewGroup({ user }: AuthProps) {
           userEmail={user.email || ""}
           memberName={user.displayName}
           isAdmin={isAdmin}
-          removeTask={removeTask}
-          removeUser={removeUser}
+          removeTask={(task) => setRemoveTaskConfirmation(task)}
+          removeUser={(member) => setRemoveUserConfirmation(member)}
         />
         {groupData.members
           .filter((x) => x.id !== user.email)
@@ -228,24 +254,40 @@ function ViewGroup({ user }: AuthProps) {
               userEmail={member.id}
               memberName={member.name}
               isAdmin={isAdmin}
-              removeTask={removeTask}
-              removeUser={removeUser}
+              removeTask={(task) => setRemoveTaskConfirmation(task)}
+              removeUser={(member) => setRemoveUserConfirmation(member)}
             />
           ))}
       </div>
       {isAdmin ? (
-        <div className="flex place-content-between px-2">
+        <div className="flex place-content-between px-2 gap-2">
           <Button onClick={() => setShowAddMemberDialog(true)}>
             Add Member
           </Button>
           <Button onClick={() => setShowAddTaskDialog(true)}>Add Task</Button>
-          <Button onClick={() => manualGroupCreate({ groupId: groupDoc?.id })}>
-            Check for Names
-          </Button>
         </div>
       ) : (
         ""
       )}
+      <ConfirmDialog
+        open={removeUserConfirmation !== null}
+        title="Remove User?"
+        description={`Are you sure you want to remove ${
+          removeUserConfirmation &&
+          (removeUserConfirmation.name || removeUserConfirmation.id)
+        } from the group?`}
+        onClose={() => setRemoveUserConfirmation(null)}
+        onConfirm={() => removeUser(removeUserConfirmation?.id || "")}
+      />
+      <ConfirmDialog
+        open={removeTaskConfirmation !== null}
+        title="Remove User?"
+        description={`Are you sure you want to remove task ${
+          removeTaskConfirmation && removeTaskConfirmation.name
+        } from the group?`}
+        onClose={() => setRemoveTaskConfirmation(null)}
+        onConfirm={() => removeTask(removeTaskConfirmation?.name || "")}
+      />
       <TasketDialog
         open={showAddMemberDialog}
         onClose={() => setShowAddMemberDialog(false)}

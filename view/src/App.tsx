@@ -22,7 +22,7 @@ function App() {
   }
 
   return (
-    <div className="bg-gray-800 h-screen text-gray-300">
+    <div className="bg-gray-800 text-gray-300 min-h-screen">
       <header className="mb-2">
         <nav className="py-4 px-6 text-sm font-medium bg-sky-800 rounded-b-md flex place-content-between">
           <div className="inline-block">

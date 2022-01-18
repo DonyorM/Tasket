@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Dialog } from "@headlessui/react";
 import { IconButton } from "./Button";
 
-interface DialogProps {
+export interface DialogProps {
   open: boolean;
   onClose: () => void;
   title?: string;

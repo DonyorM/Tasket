@@ -15,6 +15,7 @@ import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import Unsubscribe from "./routes/Unsubscribe";
+import GroupHistoryView from "./routes/GroupHistoryView";
 
 dayjs.extend(isoWeek);
 dayjs.extend(customParseFormat);
@@ -28,6 +29,7 @@ ReactDOM.render(
           <Route path="" element={<Home />} />
           <Route path="create-group" element={<CreateGroup />} />
           <Route path="group/:groupId" element={<ViewGroup />} />
+          <Route path="group/:groupId/history" element={<GroupHistoryView />} />
           <Route path="unsubscribe" element={<Unsubscribe />} />
           <Route path="*" element={<NotFound />} />
         </Route>

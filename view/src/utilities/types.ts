@@ -25,3 +25,8 @@ export interface Group {
   currentOffset?: number;
   currentStartDate: string;
 }
+
+export interface GroupHistory {
+  groupId: string;
+  previousWeeks: Group[];
+}
