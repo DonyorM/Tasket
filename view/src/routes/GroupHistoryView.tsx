@@ -63,6 +63,8 @@ function GroupHistoryView({ user }: AuthProps) {
     </div>;
   }
 
+  const isAdmin = mostRecent.admin === user.email;
+
   return (
     <div className="p-2">
       <LinkButton to={`/group/${groupId}`}>Back</LinkButton>
@@ -87,7 +89,8 @@ function GroupHistoryView({ user }: AuthProps) {
                       {task.assignedName || task.assignedId || "Not assigned"}
                     </span>
                     <span>{task.completed ? "Completed" : "Incomplete"}</span>
-                    {!task.completed && task.assignedId === user.email ? (
+                    {!task.completed &&
+                    (task.assignedId === user.email || isAdmin) ? (
                       <span className="flex items-center justify-center">
                         <IconButton
                           onClick={() => {
