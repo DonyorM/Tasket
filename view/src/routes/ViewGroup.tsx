@@ -10,24 +10,28 @@ import { Group, Member, Task } from "../utilities/types";
 import NotFound from "./NotFound";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMinusCircle, faUserMinus } from "@fortawesome/free-solid-svg-icons";
+import {
+  faMinusCircle,
+  faPen,
+  faUserMinus,
+} from "@fortawesome/free-solid-svg-icons";
 import TasketDialog from "../components/TasketDialog";
 import FloatingLabelInput from "../components/FloatingLabelInput";
 import Select from "../components/Select";
 import dayjs from "dayjs";
 import { useSmMediaMatch } from "../utilities/useMediaMatch";
 import ConfirmDialog from "../components/ConfirmDialog";
+import { group } from "console";
 const db = getFirestore();
 const functions = getFunctions();
 const rotateTasks = httpsCallable(functions, "rotateTasks");
 const addMemberToGroup = httpsCallable(functions, "addMemberToGroup");
-const manualGroupCreate = httpsCallable(functions, "manualGroupCreate");
 
 interface UserRowProps {
   tasks: Task[] | undefined;
   userEmail: string;
   memberName?: string | null;
-  removeTask: (task: Task) => void;
+  editTask: (task: Task) => void;
   removeUser: (user: Member) => void;
   isAdmin?: boolean;
 }
@@ -36,8 +40,8 @@ function UserRow({
   tasks,
   userEmail,
   memberName,
-  removeTask,
   removeUser,
+  editTask,
   isAdmin,
 }: UserRowProps) {
   if (tasks && tasks?.length > 0) {
@@ -70,8 +74,8 @@ function UserRow({
                     </IconButton>
                   </span>
                   <span className="col-span-2 sm:col-span-1 flex justify-center p-1">
-                    <IconButton onClick={() => removeTask(task)}>
-                      <FontAwesomeIcon icon={faMinusCircle} />
+                    <IconButton onClick={() => editTask(task)}>
+                      <FontAwesomeIcon icon={faPen} />
                     </IconButton>
                   </span>
                 </Fragment>
@@ -124,6 +128,8 @@ function ViewGroup({ user }: AuthProps) {
     useState<Member | null>(null);
   const [removeTaskConfirmation, setRemoveTaskConfirmation] =
     useState<Task | null>(null);
+  const [taskEditIndex, setTaskEditIndex] = useState(-1);
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const isSmall = useSmMediaMatch();
   if (!groupId) {
     return <NotFound />;
@@ -209,6 +215,22 @@ function ViewGroup({ user }: AuthProps) {
     setShowAddTaskDialog(false);
   }
 
+  function editTask() {
+    const newGroup = { ...groupData };
+    const newTasks = [...newGroup.tasks];
+    if (taskToEdit) {
+      console.log("saving task");
+      newTasks[taskEditIndex] = taskToEdit;
+      newGroup.tasks = newTasks;
+      const ref = groupDoc?.ref;
+      if (ref) {
+        console.log("saving task2");
+        setDoc(ref, newGroup);
+      }
+      setTaskToEdit(null);
+    }
+  }
+
   return (
     <>
       <h1 className="text-4xl text-center">{groupData.name}</h1>
@@ -242,7 +264,10 @@ function ViewGroup({ user }: AuthProps) {
           userEmail={user.email || ""}
           memberName={user.displayName}
           isAdmin={isAdmin}
-          removeTask={(task) => setRemoveTaskConfirmation(task)}
+          editTask={(task) => {
+            setTaskEditIndex(groupData.tasks.indexOf(task));
+            setTaskToEdit(task);
+          }}
           removeUser={(member) => setRemoveUserConfirmation(member)}
         />
         {groupData.members
@@ -254,7 +279,10 @@ function ViewGroup({ user }: AuthProps) {
               userEmail={member.id}
               memberName={member.name}
               isAdmin={isAdmin}
-              removeTask={(task) => setRemoveTaskConfirmation(task)}
+              editTask={(task) => {
+                setTaskEditIndex(groupData.tasks.indexOf(task));
+                setTaskToEdit(task);
+              }}
               removeUser={(member) => setRemoveUserConfirmation(member)}
             />
           ))}
@@ -345,6 +373,55 @@ function ViewGroup({ user }: AuthProps) {
               Cancel
             </Button>
             <Button onClick={addTask}>Add</Button>
+          </div>
+        </div>
+      </TasketDialog>
+      <TasketDialog
+        open={!!taskToEdit}
+        onClose={() => setTaskToEdit(null)}
+        title="Edit Task"
+        description=""
+      >
+        <div>
+          <FloatingLabelInput
+            value={taskToEdit?.name}
+            onValueChange={(value) => {
+              const newTask = { ...taskToEdit } as Task;
+              newTask.name = value;
+              setTaskToEdit(newTask);
+            }}
+          >
+            Task Name
+          </FloatingLabelInput>
+          <Select
+            className="my-2"
+            value={taskToEdit?.dueDate}
+            onValueChange={(value) => {
+              const newTask = { ...taskToEdit } as Task;
+              newTask.dueDate = value;
+              setTaskToEdit(newTask);
+            }}
+          >
+            <option value={DueDate.NoDueDate}>No Due Date</option>
+            <option value={DueDate.Monday}>Monday</option>
+            <option value={DueDate.Tuesday}>Tuesday</option>
+            <option value={DueDate.Wednesday}>Wednesday</option>
+            <option value={DueDate.Thursday}>Thursday</option>
+            <option value={DueDate.Friday}>Friday</option>
+            <option value={DueDate.Saturday}>Saturday</option>
+            <option value={DueDate.Sunday}>Sunday</option>
+          </Select>
+          <div className="flex justify-end pt-2">
+            <Button
+              className="mr-auto"
+              onClick={() => removeTask(groupData.tasks[taskEditIndex]?.name)}
+            >
+              Delete Task
+            </Button>
+            <Button className="mx-2" onClick={() => setTaskToEdit(null)}>
+              Cancel
+            </Button>
+            <Button onClick={editTask}>Save</Button>
           </div>
         </div>
       </TasketDialog>
