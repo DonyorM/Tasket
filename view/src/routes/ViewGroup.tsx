@@ -51,7 +51,7 @@ function UserRow({
           const relativeDueDate = convertDayToDate(task.dueDate);
           const beginningOfNextDay = relativeDueDate.add(1, "day");
           let completedText = task.completed ? "Complete" : "Incomplete";
-          if (dayjs().isAfter(beginningOfNextDay)) {
+          if (!task.completed && dayjs().isAfter(beginningOfNextDay)) {
             completedText = "Overdue";
           }
           return (
@@ -240,9 +240,8 @@ function ViewGroup({ user }: AuthProps) {
         <LinkButton to={`/group/${groupId}/history`}>View History</LinkButton>
       </div>
       <div
-        className={`grid grid-cols-4 ${
-          isAdmin ? "sm:grid-cols-[1fr_1fr_1fr_1fr_2em_2em]" : ""
-        } divide-x divide-y divide-gray-200/10 ring-1 ring-gray-200/10 rounded-md m-2 text-center`}
+        className={`grid grid-cols-4 ${isAdmin ? "sm:grid-cols-[1fr_1fr_1fr_1fr_2em_2em]" : ""
+          } divide-x divide-y divide-gray-200/10 ring-1 ring-gray-200/10 rounded-md m-2 text-center`}
       >
         <h2 className="text-2xl text-center col-span-full">Task Assignments</h2>
         <span className="font-bold">Assigned</span>
@@ -300,19 +299,17 @@ function ViewGroup({ user }: AuthProps) {
       <ConfirmDialog
         open={removeUserConfirmation !== null}
         title="Remove User?"
-        description={`Are you sure you want to remove ${
-          removeUserConfirmation &&
+        description={`Are you sure you want to remove ${removeUserConfirmation &&
           (removeUserConfirmation.name || removeUserConfirmation.id)
-        } from the group?`}
+          } from the group?`}
         onClose={() => setRemoveUserConfirmation(null)}
         onConfirm={() => removeUser(removeUserConfirmation?.id || "")}
       />
       <ConfirmDialog
         open={removeTaskConfirmation !== null}
         title="Remove User?"
-        description={`Are you sure you want to remove task ${
-          removeTaskConfirmation && removeTaskConfirmation.name
-        } from the group?`}
+        description={`Are you sure you want to remove task ${removeTaskConfirmation && removeTaskConfirmation.name
+          } from the group?`}
         onClose={() => setRemoveTaskConfirmation(null)}
         onConfirm={() => removeTask(removeTaskConfirmation?.name || "")}
       />
