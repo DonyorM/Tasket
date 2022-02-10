@@ -14,7 +14,7 @@ export const mailTransport = nodemailer.createTransport({
 export function addHtmlUnsubscribeMessage(message: string, groupId: string) {
   return (
     message +
-    `\n<p style="font-size: 10px;"><a href="https://tasket.manilas.net/unsubscribe?group=${groupId}>Unsubscribe from this group</a></p>`
+    `\n<br /><span style="font-size: 10px;"><a href="https://tasket.manilas.net/unsubscribe?group=${groupId}>Unsubscribe from this group</a></span>`
   );
 }
 
