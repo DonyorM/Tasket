@@ -1,14 +1,14 @@
 import * as dayjs from "dayjs";
 
 enum DueDate {
-  NoDueDate,
+  NoDueDate = -1,
+  Sunday,
   Monday,
   Tuesday,
   Wednesday,
   Thursday,
   Friday,
   Saturday,
-  Sunday,
 }
 
 export const convertDayToDate = (dueDate: DueDate, startDate: dayjs.Dayjs) => {

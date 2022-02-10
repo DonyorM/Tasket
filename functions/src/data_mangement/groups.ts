@@ -7,7 +7,7 @@ import {
   WriteResult,
 } from "firebase-admin/firestore";
 import dayjs = require("dayjs");
-import { convertDayToDate } from "../types/DueDate";
+import DueDate, { convertDayToDate } from "../types/DueDate";
 import {
   addHtmlUnsubscribeMessage,
   addPlainUnsubscribeMessage,
@@ -160,9 +160,8 @@ export async function sendNewTaskEmails(
       if (memberTasks) {
         const message = `Hello ${member.name},
         
-        Your ${plural ? "tasks" : "task"} for ${group.name} ${
-          plural ? "are" : "is"
-        }:
+        Your ${plural ? "tasks" : "task"} for ${group.name} ${plural ? "are" : "is"
+          }:
         ${memberText}`;
         return await sendMessage(
           member.id,
@@ -186,7 +185,8 @@ export async function sendReminderEmails(
       }
       const now = dayjs();
       const tomorrowDayNumber = now.day() === 6 ? 0 : now.day() + 1;
-      if ((task.dueDate as number) == tomorrowDayNumber) {
+      const dayBeforeResetDay = group.resetDay === 0 ? 6 : group.resetDay as number - 1;
+      if ((task.dueDate as number) == tomorrowDayNumber || (task.dueDate == DueDate.NoDueDate && tomorrowDayNumber == dayBeforeResetDay)) {
         const member = group.members.find((x) => x.id === task.assignedId);
         if (member && !member.unsubscribed) {
           const messagePlain = `Hello ${task.assignedName},
